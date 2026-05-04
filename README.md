@@ -13,7 +13,7 @@ For every prompt you send through Pi, this extension:
 3. Calls `pi.setModel()` to swap to the chosen model before the LLM call goes out
 4. Shows you the decision inline: `🔀 routed to fireworks/kimi-k2p6 · layer:rules rule:default · reason: default → Kimi K2.6 (OSS-first)`
 5. Records the decision to a SQLite store (`~/.local/share/pi-router/decisions.db`)
-6. After the response, you press `Ctrl+G` (good) or `Ctrl+B` (bad). Optionally `/bad missed the race condition` for a free-text reason.
+6. After the response, you press `Shift+Ctrl+G` (good) or `Shift+Ctrl+B` (bad). Optionally `/bad missed the race condition` for a free-text reason. (Plain `Ctrl+G` and `Ctrl+B` are reserved by Pi for the external editor and cursor-left.)
 7. Stats accumulate; `/router-stats` shows a dashboard
 
 The router itself runs **entirely on your machine**. No cloud router. No API call to decide which model to use. No data leaves your laptop unless you're routing to a cloud model — and that decision was made locally.
@@ -64,8 +64,8 @@ Press `Ctrl+P` *before* sending a message to cycle through your `models` list (c
 
 | Command | What |
 |---|---|
-| `/good [reason]` | Mark last decision as good (or use Ctrl+G) |
-| `/bad [reason]` | Mark last decision as bad (or use Ctrl+B) |
+| `/good [reason]` | Mark last decision as good (or use Shift+Ctrl+G) |
+| `/bad [reason]` | Mark last decision as bad (or use Shift+Ctrl+B) |
 | `/router-stats [days]` | Aggregate dashboard (default 30 days) |
 | `/router-explain [turnId]` | Show why a past decision was made (latest if omitted) |
 | `/router-verbose <level>` | Set inline verbosity: `debug` / `always` / `escalations` / `quiet` / `silent` |
@@ -104,7 +104,7 @@ Inline 🔀 message displayed (if verbosity allows)
   ↓
 Pi sends request, response streams back
   ↓
-You press Ctrl+G / Ctrl+B (or /good /bad)
+You press Shift+Ctrl+G / Shift+Ctrl+B (or /good /bad)
   ↓
 Feedback applied to decision row in SQLite
 ```
