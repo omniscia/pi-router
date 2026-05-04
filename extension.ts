@@ -5,7 +5,7 @@
  *   - Layer 1 heuristic rules (rules.ts) — pure code, no model
  *   - Offline detection — passive, restricts catalog to local providers
  *   - Auto-fallback to local on cloud network failure
- *   - Feedback capture via Ctrl+G / Ctrl+B + /good /bad slash commands
+ *   - Feedback capture via Shift+Ctrl+G / Shift+Ctrl+B + /good /bad slash commands
  *   - Persistent SQLite store at ~/.local/share/pi-router/decisions.db
  *   - /router-stats — aggregate dashboard
  *   - /router-explain <turnId> — show why a past decision was made
@@ -187,7 +187,7 @@ export default function piRouterExtension(pi: ExtensionAPI) {
 	});
 
 	// ----------------------------- shortcuts: feedback --------------------------
-	pi.registerShortcut("ctrl+g", {
+	pi.registerShortcut("shift+ctrl+g", {
 		description: "Mark last router decision as GOOD",
 		handler: async (ctx) => {
 			const last = pendingDecision ?? lastDecision();
@@ -200,7 +200,7 @@ export default function piRouterExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerShortcut("ctrl+b", {
+	pi.registerShortcut("shift+ctrl+b", {
 		description: "Mark last router decision as BAD",
 		handler: async (ctx) => {
 			const last = pendingDecision ?? lastDecision();
@@ -399,7 +399,7 @@ function renderInline(pi: ExtensionAPI, decision: RoutingDecision, verbosity: Ve
 			);
 		}
 		lines.push(`   turn-id: ${decision.turnId.slice(0, 8)}`);
-		lines.push(`   feedback: Ctrl+G good · Ctrl+B bad · /good <reason> · /bad <reason>`);
+		lines.push(`   feedback: Shift+Ctrl+G good · Shift+Ctrl+B bad · /good <reason> · /bad <reason>`);
 	} else if (verbosity === "always") {
 		// brief
 	}
