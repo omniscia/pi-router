@@ -38,7 +38,11 @@ export const MODELS = {
 	OLLAMA_QWEN_CODER: "ollama/qwen3-coder:30b",
 } as const;
 
-export const DEFAULT_MODEL = MODELS.KIMI_K2_6;
+// Default flipped 2026-05-07: Kimi K2.6 was unreliable (Fireworks 429 rate-limit
+// hits) and pi sessions were crashing. Switching default to Anthropic Opus 4.7.
+// OSS-first philosophy preserved via specific routing rules above; Opus is the
+// fallback when no specific rule fires.
+export const DEFAULT_MODEL = MODELS.OPUS_4_7;
 export const DEFAULT_LOCAL_MODEL = MODELS.MLX_QWEN_CODER;
 
 export const RULES: Rule[] = [
@@ -121,7 +125,7 @@ export const RULES: Rule[] = [
 		priority: 1000,
 		when: () => true,
 		pick: DEFAULT_MODEL,
-		reason: "default → Kimi K2.6 (OSS-first)",
+		reason: "default → Claude Opus 4.7 (subscription-routed; reliable; was Kimi K2.6 but Fireworks rate-limited)",
 	},
 ];
 
