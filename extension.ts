@@ -24,7 +24,8 @@ import type { Model, Api } from "@mariozechner/pi-ai";
 import { randomUUID } from "node:crypto";
 import { buildFeatures, summarizeFeatures } from "./features.js";
 import { isOnline, isLocalProvider, maybeMarkOfflineFromError, offlineRemainingMs } from "./network.js";
-import { pickRule, parseCanonical, MODELS, DEFAULT_LOCAL_MODEL } from "./rules.js";
+import { pickRule, parseCanonical, MODELS, DEFAULT_LOCAL_MODEL, RULES } from "./rules.js";
+import { isThrottled, markThrottled, detectThrottleFromError, throttleRemainingMs } from "./throttle.js";
 import { recordDecision, applyFeedback, lastDecision, getDecision, statsSummary, dbPath } from "./store.js";
 import { loadConfig, saveConfig, configPath } from "./config-io.js";
 import type { RoutingDecision, VerbosityLevel } from "./types.js";
@@ -92,7 +93,16 @@ export default function piRouterExtension(pi: ExtensionAPI) {
 		}
 
 		// Layer 1: rules
-		const rule = pickRule(features);
+		// Skip rules whose pick resolves to a currently-throttled provider.
+		const sortedRules = [...RULES].sort((a, b) => a.priority - b.priority);
+		let rule = pickRule(features);
+		for (const candidate of sortedRules) {
+			if (!candidate.when(features)) continue;
+			const { provider: p } = parseCanonical(candidate.pick);
+			if (isThrottled(p)) continue; // skip throttled providers
+			rule = candidate;
+			break;
+		}
 		const { provider, id } = parseCanonical(rule.pick);
 
 		// Try to resolve the chosen model in Pi's registry
@@ -171,13 +181,32 @@ export default function piRouterExtension(pi: ExtensionAPI) {
 	// Listen for network errors → mark offline so future decisions route local.
 	pi.on("after_provider_response", (event, _ctx) => {
 		const err = (event as unknown as { error?: unknown }).error;
-		if (err) {
-			const wasNetwork = maybeMarkOfflineFromError(err);
-			if (wasNetwork && config.verbosity !== "silent") {
+		if (!err) return;
+
+		// Network error → offline mode
+		const wasNetwork = maybeMarkOfflineFromError(err);
+		if (wasNetwork && config.verbosity !== "silent") {
+			pi.sendMessage(
+				{
+					customType: "pi-router",
+					content: `⚠ pi-router: network error detected, entering OFFLINE mode for ${Math.round(offlineRemainingMs() / 1000)}s. Future routes will pick local models.`,
+					display: true,
+				},
+				{ deliverAs: "nextTurn" },
+			);
+			return;
+		}
+
+		// Rate limit / server error → throttle the provider
+		const throttleKind = detectThrottleFromError(err);
+		if (throttleKind && pendingDecision) {
+			const provider = pendingDecision.chosenProvider;
+			markThrottled(provider);
+			if (config.verbosity !== "silent") {
 				pi.sendMessage(
 					{
 						customType: "pi-router",
-						content: `⚠ pi-router: network error detected, entering OFFLINE mode for ${Math.round(offlineRemainingMs() / 1000)}s. Future routes will pick local models.`,
+						content: `⚠ pi-router: ${provider} ${throttleKind} — throttled for ${Math.round(throttleRemainingMs(provider) / 60_000)}m. Next routes will skip this provider.`,
 						display: true,
 					},
 					{ deliverAs: "nextTurn" },

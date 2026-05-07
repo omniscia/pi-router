@@ -94,13 +94,23 @@ export const RULES: Rule[] = [
 		reason: "debug + large ctx → Kimi K2 Thinking",
 	},
 
-	// ---------------- FAST/FREE ----------------
+	// ---------------- FAST/FREE (Cerebras) ----------------
+	// Cerebras Free tier rate-limits aggressively. Only route here when the
+	// task is GENUINELY trivial — single-word lookups, yes/no questions, etc.
+	// Anything substantive should go through the OSS-frontier Kimi K2.6 default.
 	{
-		name: "quick-question",
+		name: "trivial-lookup",
 		priority: 40,
-		when: (f) => f.promptTokensApprox < 250 && !f.hasCodeFences && f.touchedFiles === 0 && !f.mentionsDebug,
+		when: (f) =>
+			f.promptTokensApprox < 50 &&
+			!f.hasCodeFences &&
+			f.touchedFiles === 0 &&
+			!f.mentionsDebug &&
+			!f.mentionsRefactor &&
+			!f.mentionsExplain &&
+			f.conversationTokensApprox < 500,
 		pick: MODELS.QWEN_3_235B,
-		reason: "small standalone Q → Cerebras free fast",
+		reason: "trivial lookup (<50 tok, fresh ctx) → Cerebras free",
 	},
 
 	// ---------------- COST-OPTIMIZED OSS ----------------
