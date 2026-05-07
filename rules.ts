@@ -94,24 +94,10 @@ export const RULES: Rule[] = [
 		reason: "debug + large ctx → Kimi K2 Thinking",
 	},
 
-	// ---------------- FAST/FREE (Cerebras) ----------------
-	// Cerebras Free tier rate-limits aggressively. Only route here when the
-	// task is GENUINELY trivial — single-word lookups, yes/no questions, etc.
-	// Anything substantive should go through the OSS-frontier Kimi K2.6 default.
-	{
-		name: "trivial-lookup",
-		priority: 40,
-		when: (f) =>
-			f.promptTokensApprox < 50 &&
-			!f.hasCodeFences &&
-			f.touchedFiles === 0 &&
-			!f.mentionsDebug &&
-			!f.mentionsRefactor &&
-			!f.mentionsExplain &&
-			f.conversationTokensApprox < 500,
-		pick: MODELS.QWEN_3_235B,
-		reason: "trivial lookup (<50 tok, fresh ctx) → Cerebras free",
-	},
+	// NOTE: Cerebras Free tier removed from auto-routing 2026-05-07.
+	// Rate limits make it unsuitable as a default. Users can still manually
+	// pick it via Ctrl+P. To re-enable as a route target, add a rule here
+	// AFTER you upgrade to Cerebras Code Pro/Max with reliable quotas.
 
 	// ---------------- COST-OPTIMIZED OSS ----------------
 	{

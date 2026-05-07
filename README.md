@@ -1,5 +1,13 @@
 # pi-router
 
+> **📦 Repository moved.** As of 2026-05-07, pi-router has been vendored into the Tabula substrate as `@tabula/router`. Future development happens at:
+>
+> **→ https://github.com/tabula-project/tabula/tree/main/l0/router**
+>
+> This repo is preserved for git-history continuity. Existing installations continue to work; new installs should clone Tabula and use `l0/router/`.
+
+---
+
 **Local-first adaptive model router for Pi.** OSS-first routing with offline support, feedback-driven learning, and 100% local decision-making.
 
 > Status: v0 — heuristic rules + feedback capture + stats. v0.5 (embedding-based learning) and v1 (local LLM tiebreaker) coming next.
